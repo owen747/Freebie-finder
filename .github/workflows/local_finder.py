@@ -175,6 +175,50 @@ def build_report(items):
         out.append("   Nothing logged yet — edit freebie_data/claimed.json to log wins.")
     return "\n".join(out)
 
+# ---------------------------------------------------------------- SWEEPS
+SWEEPS_FILE = os.path.join(DATA_DIR, "sweeps.json")
+
+def sweeps_section():
+    sweeps = _load(SWEEPS_FILE, [])
+    if not sweeps: return []
+    n, live = now_mt(), []
+    for s in sweeps:
+        try:
+            end = datetime.strptime(s["ends"], "%Y-%m-%d").replace(tzinfo=MT)
+        except Exception:
+            continue
+        days = (end - n).days
+        if days < 0: continue
+        ev = s.get("prize_value", 0) / max(s.get("est_entrants", 1), 1)
+        live.append({**s, "days": days, "ev": ev})
+
+    live.sort(key=lambda s: (-s["ev"], s["days"]))
+    out = []
+
+    closing = [s for s in live if s["days"] <= 2]
+    if closing:
+        out.append(f"CLOSING SOON ({len(closing)})")
+        for s in closing:
+            d = "TODAY" if s["days"] == 0 else f"{s['days']}d left"
+            out += [f"   • {s['name']} — {d}", f"     {s['url']}"]
+        out.append("")
+
+    daily = [s for s in live if s.get("daily") and s not in closing]
+    if daily:
+        out.append(f"ENTER TODAY — daily resets ({len(daily)})")
+        for s in daily:
+            out += [f"   • {s['name']}  [EV ${s['ev']:.3f}/entry]", f"     {s['url']}"]
+        out.append("")
+
+    rest = [s for s in live if s not in closing and s not in daily]
+    if rest:
+        out.append(f"ONE-TIME ENTRY — open ({len(rest)})")
+        for s in rest[:10]:
+            out += [f"   • {s['name']} — {s['days']}d left  [EV ${s['ev']:.3f}]",
+                    f"     {s['url']}"]
+        out.append("")
+    return out
+
 # ---------------------------------------------------------------- EMAIL
 def send_email(body):
     addr, pw = os.environ.get("FREEBIE_EMAIL"), os.environ.get("FREEBIE_PASS")
