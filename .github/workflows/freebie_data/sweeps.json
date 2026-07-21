@@ -1,1 +1,12 @@
 
+[
+  {
+    "name": "Example — replace me",
+    "url": "https://example.com/enter",
+    "daily": true,
+    "ends": "2026-12-31",
+    "prize_value": 500,
+    "est_entrants": 20000,
+    "notes": "delete this entry once you add real ones"
+  }
+]
