@@ -130,6 +130,7 @@ def scan():
 def build_report(items):
     n = now_mt()
     out = [f"FREEBIE REPORT — {n.strftime('%a %b %d, %I:%M %p')} MT", "="*46, ""]
+    out += sweeps_section()
 
     urgent = [i for i in items if i["days_left"] is not None and i["days_left"] <= 1]
     if urgent:
